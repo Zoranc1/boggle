@@ -21,7 +21,7 @@ def path_to_word(path,grid):
 def load_word_list(filename):
     with open(filename) as f:
         text = f.read().upper().split("\n")
-    return text  
+    return set(text)  
 
 
 def get_real_neighbours(grid):
@@ -33,14 +33,51 @@ def get_real_neighbours(grid):
         real_neighbours[position] = on_the_grid
         
     return real_neighbours
+
+def is_a_real_word(word,dictionary): 
+    return word in dictionary
+    
+def get_stems(word):
+    return [word[:i] for i in range(1, len(word))]
+
+
+def get_stems_for_word_list(wl):
+    stems = []
+    for word in wl:    
+        stems_for_word = get_stems(word)
+        stems += stems_for_word
+    return set(stems)   
+    
+def search(grid, dictionary):
+    neighbours = get_real_neighbours(grid)
+    stems = get_stems_for_word_list(dictionary)
+    words = []
+    
+    def do_search(path):
+        word = path_to_word(path, grid)
+        if is_a_real_word(word,dictionary):
+            words.append(word)
+        if word in stems:
+            for next_pos in neighbours[path[-1]]:
+                if next_pos not in path:
+                    do_search(path + [next_pos])
         
-grid = make_grid(3, 3)
-rn = get_real_neighbours(grid)
-print(rn[(0,0)])        
+    for position in grid:
+        do_search([position])
         
+    return set(words)
+    
+def display_words(words):
+    for word in words:
+        print(word)
+    print("Found %s words" % len(words))        
         
-        
-        
+def main():
+    grid = make_grid(200, 200)
+    word_list = load_word_list("words.txt")
+    words = search(grid, word_list)
+    display_words(words)
+main()         
         
         
         
